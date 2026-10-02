@@ -10,6 +10,46 @@ The analysis tested six model families using identical preprocessing and stratif
 
 The result is a data finding rather than a failed modeling exercise: the available customer attributes do not contain a reliable relationship with churn. Deploying the model would create a high-risk list that is effectively a random sample of customers.
 
+## Key visual evidence
+
+The following charts are direct outputs from `churn.ipynb` and summarize the evidence behind the deployment recommendation.
+
+### Tenure does not separate churned and retained customers
+
+The tenure distributions nearly overlap, and churn rates do not move consistently across tenure bands. Mean tenure is 42.10 months for retained customers and 42.15 months for churned customers.
+
+![Tenure distributions and churn rate by tenure band](assets/visualizations/tenure-by-churn.png)
+
+### No feature reaches a useful correlation with churn
+
+None of the 33 numeric inputs reaches the reference threshold of an absolute 0.10 correlation. The strongest observed relationship is only 0.069 for `used_mobile_app`.
+
+![Spearman correlations between model features and churn](assets/visualizations/feature-correlation.png)
+
+### All six model families perform near chance
+
+Mean cross-validated ROC-AUC ranges from 0.498 to 0.524. The uncertainty across folds is larger than the difference between the best and worst model.
+
+![Cross-validated ROC-AUC comparison across six models](assets/visualizations/model-comparison.png)
+
+### Hyperparameter tuning fits validation noise
+
+Optuna increases cross-validated ROC-AUC from 0.524 to 0.539, while held-out test ROC-AUC decreases from 0.463 to 0.453. The opposing movement indicates that tuning does not improve generalization.
+
+![Optuna trials and comparison of cross-validation with held-out performance](assets/visualizations/hyperparameter-tuning.png)
+
+### Threshold optimization behaves like contacting everyone
+
+Both F1 optimization and the illustrative 10:1 miss-to-waste cost ratio select a threshold of 0.05. This flags approximately 98% of customers while precision remains near the 48% churn base rate.
+
+![Precision recall F1 and expected cost across decision thresholds](assets/visualizations/threshold-analysis.png)
+
+### The tuned model does not beat shuffled labels
+
+The tuned model's cross-validated ROC-AUC of 0.539 remains below the shuffled-label 95th percentile of 0.540. Its empirical p-value is 0.067.
+
+![Tuned model ROC-AUC compared with the shuffled-label distribution](assets/visualizations/label-shuffle-test.png)
+
 ## Business objective
 
 The project addresses three questions:
